@@ -9,6 +9,13 @@
   ],
   "plugins": [
     "transform-object-rest-spread",
-    "transform-function-bind"
+    "transform-function-bind",
+    [
+      "transform-runtime",
+      {
+        "polyfill": false,
+        "regenerator": true
+      }
+    ]
   ]
 }
