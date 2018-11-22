@@ -34,7 +34,9 @@ export default class PullRefresh extends Component {
       this.setState({
         phase: 'refreshing'
       })
-      await onRefresh()
+      try {
+        await onRefresh()
+      } catch(error) {}
       this.setState({
         yRefreshing: 0,
         phase: 'refreshed'
