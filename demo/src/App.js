@@ -7,6 +7,12 @@ class App extends Component {
   async onRefresh() {
     await sleep(2000)
   }
+  onPullStart() {
+    console.log('onPullStart')
+  }
+  onPullEnd() {
+    console.log('onPullEnd')
+  }
   componentDidMount() {
     this.refs.pull.refresh()
   }
@@ -15,6 +21,8 @@ class App extends Component {
       <PullRefresh
         ref='pull'
         onRefresh={::this.onRefresh}
+        onPullStart={::this.onPullStart}
+        onPullEnd={::this.onPullEnd}
         style={{
           backgroundColor: 'red',
           position:'absolute',

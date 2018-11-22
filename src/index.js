@@ -49,6 +49,9 @@ export default class PullRefresh extends Component {
       ? evt.currentTarget.scrollTop : evt.nativeEvent.contentOffset.y
   }
   onDown(evt) {
+    if (this._pullStartY === undefined) {
+      this._pullStartY = evt.nativeEvent.touches ? evt.nativeEvent.touches[0].pageY : evt.pageY
+    }
     const { phase } = this.state
     if(this._willRefresh) return
     if(phase === 'refreshed' || phase === 'refreshing') return
@@ -58,11 +61,28 @@ export default class PullRefresh extends Component {
   }
   async onUp(evt) {
     const { phase } = this.state
-    if(phase === 'refreshed' || phase === 'refreshing') return
-    this._down = false
-    await this._refresh()
+    if(phase !== 'refreshed' && phase !== 'refreshing') {
+      this._down = false
+      await this._refresh()
+    }
+    if (this._pullStartY !== undefined) {
+      if (this._isPulling) {
+        this.props.onPullEnd();
+        this._isPulling = false;
+      }
+      this._pullStartY = undefined;
+    }
   }
   onMove(evt) {
+    if (this._pullStartY !== undefined) {
+      if (!this._isPulling) {
+        const pullY = evt.nativeEvent.touches ? evt.nativeEvent.touches[0].pageY : evt.pageY
+        if (pullY - this._pullStartY >= this.props.distanceToPull) {
+          this._isPulling = true;
+          this.props.onPullStart();
+        }
+      }
+    }
     const { phase } = this.state
     if(this._willRefresh || !this._down) return
     if(phase === 'refreshed' || phase === 'refreshing') return
@@ -103,6 +123,9 @@ export default class PullRefresh extends Component {
       onRefresh,
       disabled,
       as,
+      onPullStart,
+      onPullEnd,
+      distanceToPull,
       children,
       ...props
     } = this.props
@@ -136,7 +159,10 @@ PullRefresh.propTypes = {
   color: PropTypes.string,
   bgColor: PropTypes.string,
   render: PropTypes.func,
-  zIndex: PropTypes.number
+  zIndex: PropTypes.number,
+  onPullStart: PropTypes.func,
+  onPullEnd: PropTypes.func,
+  distanceToPull: PropTypes.number
 }
 
 PullRefresh.defaultProps = {
@@ -146,5 +172,8 @@ PullRefresh.defaultProps = {
   color: '#4285f4',
   bgColor: '#fff',
   render: renderDefault,
-  zIndex: undefined
+  zIndex: undefined,
+  onPullStart: () => {},
+  onPullEnd: () => {},
+  distanceToPull: 10,
 }
