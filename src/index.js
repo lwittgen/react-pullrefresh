@@ -52,7 +52,9 @@ export default class PullRefresh extends Component {
   }
   onDown(evt) {
     if (this._pullStartY === undefined) {
+      this._pullStartX = evt.nativeEvent.touches ? evt.nativeEvent.touches[0].pageX : evt.pageX
       this._pullStartY = evt.nativeEvent.touches ? evt.nativeEvent.touches[0].pageY : evt.pageY
+      this._cancel = false;
     }
     const { phase } = this.state
     if(this._willRefresh) return
@@ -72,16 +74,26 @@ export default class PullRefresh extends Component {
         this.props.onPullEnd();
         this._isPulling = false;
       }
+      this._pullStartX = undefined;
       this._pullStartY = undefined;
     }
   }
   onMove(evt) {
+    if (this._cancel) {
+      return;
+    }
     if (this._pullStartY !== undefined) {
       if (!this._isPulling) {
+        const pullX = evt.nativeEvent.touches ? evt.nativeEvent.touches[0].pageX : evt.pageX
         const pullY = evt.nativeEvent.touches ? evt.nativeEvent.touches[0].pageY : evt.pageY
         if (pullY - this._pullStartY >= this.props.distanceToPull) {
           this._isPulling = true;
           this.props.onPullStart();
+        } else if (Math.abs(pullX - this._pullStartX) >= this.props.distanceToPull) {
+          this._cancel = true;
+          this._pullStartX = undefined;
+          this._pullStartY = undefined;
+          return;
         }
       }
     }
